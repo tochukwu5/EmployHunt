@@ -127,8 +127,11 @@ async function main() {
       }
     }
 
-    // Only remember a lead once it's actually been delivered, so a Telegram hiccup never loses one.
-    if (delivered) state.markSeen(st, post.id, now);
+    // Only remember a post once it's genuinely finished with:
+    //  - a lead that failed to reach Telegram is kept and retried
+    //  - a post the AI couldn't check (AI down) is kept, so the AI checks it next run
+    const aiSkipped = v.aiFailed && !alert;
+    if (delivered && !aiSkipped) state.markSeen(st, post.id, now);
     if (v.usedAI && i < batch.length - 1) await sleep(cfg.ai.delayMs);
   }
 

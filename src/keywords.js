@@ -40,7 +40,8 @@ const STRONG_INTENT = [
   // design/build asks
   "can someone design this", "can someone build this", "who can design this", "who can build this",
   "who can code this", "who can make this", "can anyone build this", "can anyone code this",
-  "can someone build me", "can someone build a", "who can build me", "who can build a",
+  "can someone build me", "who can build me", "can someone build a website", "can someone build an app",
+  "can someone build a bot", "can someone build a tool", "who can build a website", "who can build an app",
   "need help with my website", "need help with website", "website not working", "website isn't working",
   // trading — requests
   "i need an indicator that", "i need a tradingview indicator that", "can someone code this indicator",
@@ -107,6 +108,14 @@ const NEGATIVE = [
   "spots available", "commissions open", "job seeker",
   // rhetorical hooks sellers use ("Need a website? DM me!")
   "need a website?", "need an app?", "need a developer?", "looking for a developer?", "want a website?",
+  // sellers introducing themselves ("I'm a Web Developer creating modern websites...")
+  "i'm a web developer", "i am a web developer", "i'm a web designer", "i am a web designer",
+  "i'm a freelance", "i am a freelance",
+  // talking TO the reader, not asking for help ("If you need a website, let me know!")
+  "if you need a website", "if you need a developer", "if you need an app",
+  "when you need a website", "when you need a developer",
+  // negations ("your project doesn't need a website that looks like...")
+  "doesn't need a website", "does not need a website", "don't need a website", "do not need a website",
 ];
 
 /** What they want. Used to confirm weak intent and to pick the alert category. */
@@ -165,8 +174,8 @@ const TOPICS = {
  */
 const SEARCH_QUERIES = [
   "need a developer", "looking for a developer", "looking for a web developer", "need a web developer",
-  "need a website", "need someone to build", "looking for someone to build", "who can build",
-  "can someone build", "hiring a developer", "need a freelancer", "looking for a freelancer",
+  "need a website", "need someone to build", "looking for someone to build", "who can build me",
+  "can someone build me", "hiring a developer", "need a freelancer", "looking for a freelancer",
   "pine script developer", "need a pine script", "tradingview indicator", "need an indicator",
   "custom indicator", "trading bot developer", "need a trading bot", "automate my strategy",
   "automate my trading", "need a dashboard", "need a landing page", "build my mvp", "need an mvp",

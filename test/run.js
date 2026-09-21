@@ -5,7 +5,7 @@
  */
 const assert = require("assert");
 const { scorePost } = require("../src/matcher");
-const { parseVerdict, rulesVerdict, extractBudget, isAlertable } = require("../src/classifier");
+const { parseVerdict, rulesVerdict, extractBudget, isAlertable, errorText } = require("../src/classifier");
 const { formatLead } = require("../src/notify");
 const { rotate } = require("../src/state");
 
@@ -149,6 +149,50 @@ test("Weak match does NOT clear the bar without AI", () => {
   const m = scorePost(post);
   const v = rulesVerdict(post, m);
   assert.ok(!isAlertable(v, { ai: { minConfidence: 60 }, includeFulltime: true }), `conf ${v.confidence}`);
+});
+
+console.log("\nReal junk from the first live run — must never alert");
+const JUNK = [
+  ["Seller introducing themselves", "💻 Need a Website for Your Business? I’m a Web Developer creating modern, responsive & professional websites at affordable prices."],
+  ["Marketplace ad", "Hire a Professional Web Designer on Mitlance !! If you need a website that looks great, works well, and represents your business online"],
+  ["Recommending someone", "Ladies, if you need a website, let me know! Absolutely nailed my vision, professional, and done in under a week!"],
+  ["Opinion with a negation", "Your recomp project doesn't need a website that looks like every other VC-backed developer tool's website, i promise."],
+  ["Article intro", "Website Development vs Website Builder: Which Is Better? When you need a website, the first big decision is how to build it."],
+  ["Poetry", "She who can build a thing, can destroy a thing."],
+  ["Joke", "Can someone build a time machine real quick? I'd like to go back and tell 15yo me something."],
+];
+for (const [name, text] of JUNK) {
+  test(name, () => {
+    const r = scorePost(P("", text));
+    if (r.pass) {
+      // If keywords let it through, rules mode must still refuse to alert on it.
+      const v = rulesVerdict(P("", text), r);
+      assert.ok(!isAlertable(v, { ai: { minConfidence: 60 }, includeFulltime: true }), "would alert: " + r.reason);
+    }
+  });
+}
+test("A genuine need still reaches the AI", () => {
+  const r = scorePost(P("", "Realizing I need a website for the upcoming January thing I still can't talk about yet"));
+  assert.ok(r.pass, r.reason);
+});
+test("...but without AI it is NOT sent as a guess", () => {
+  const post = P("", "Realizing I need a website for the upcoming January thing");
+  const v = rulesVerdict(post, scorePost(post));
+  assert.ok(!isAlertable(v, { ai: { minConfidence: 60 }, includeFulltime: true }));
+});
+test("An ad that slips past keywords is still blocked without AI", () => {
+  const post = P("", "Stop searching for clients. Find businesses that need a website. HungryDevs is free in open beta");
+  const v = rulesVerdict(post, scorePost(post));
+  assert.ok(!isAlertable(v, { ai: { minConfidence: 60 }, includeFulltime: true }));
+});
+
+console.log("\nAI error reporting");
+test("Reads the message from a Groq error", () => {
+  const t = errorText('{"error":{"message":"The model llama-3.3-70b-versatile does not exist or you do not have access to it.","type":"invalid_request_error"}}');
+  assert.ok(t.includes("does not exist"), t);
+});
+test("Reads the message from a Gemini error", () => {
+  assert.ok(errorText('{"error":{"code":404,"message":"models/x is not found","status":"NOT_FOUND"}}').includes("not found"));
 });
 
 console.log("\nTelegram formatting");

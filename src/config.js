@@ -40,20 +40,21 @@ module.exports = {
 
   ai: {
     groqKey: env.GROQ_API_KEY,
-    groqModel: str(env.GROQ_MODEL, "llama-3.3-70b-versatile"),
-    groqFallbackModel: str(env.GROQ_FALLBACK_MODEL, "llama-3.1-8b-instant"),
+    groqModel: str(env.GROQ_MODEL, "openai/gpt-oss-120b"),
+    groqFallbackModel: str(env.GROQ_FALLBACK_MODEL, "openai/gpt-oss-20b"),
     geminiKey: env.GEMINI_API_KEY,
     geminiModel: str(env.GEMINI_MODEL, "gemini-2.5-flash"),
     // Only alert when the AI is at least this confident it's a real client lead.
     minConfidence: num(env.MIN_CONFIDENCE, 60),
     // Cap on AI checks per run. Highest-scoring posts go first; the rest wait for the next run.
     maxPerRun: num(env.MAX_AI_CALLS_PER_RUN, 25),
-    // Pause between AI calls. Keeps us inside Groq's free per-minute token limit.
-    delayMs: num(env.AI_DELAY_MS, 4500),
+    // Pause between AI calls. Keeps us inside Groq's free per-minute token limit (8,000 tokens/min).
+    delayMs: num(env.AI_DELAY_MS, 8000),
   },
 
-  // Ignore posts older than this.
-  maxPostAgeHours: num(env.MAX_POST_AGE_HOURS, 48),
+  // Ignore posts older than this. Older posts have usually already been answered.
+  // 12 hours still covers any missed hourly runs.
+  maxPostAgeHours: num(env.MAX_POST_AGE_HOURS, 12),
   // How many Bluesky search phrases to run each time (they rotate through the full list).
   searchQueriesPerRun: num(env.SEARCH_QUERIES_PER_RUN, 12),
   // Also alert on full-time job postings, not only freelance gigs.

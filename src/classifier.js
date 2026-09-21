@@ -3,12 +3,13 @@
  * Decides whether a keyword-matched post is a REAL client lead.
  *
  * Provider chain (all free tiers, no card needed):
- *   1. Groq  — llama-3.3-70b-versatile   (best quality)
- *   2. Groq  — llama-3.1-8b-instant      (much larger daily allowance)
- *   3. Gemini — gemini-2.5-flash         (independent backup)
- *   4. Rules — keyword score only        (always works, never blocks the bot)
+ *   1. Groq   — openai/gpt-oss-120b   (best quality)
+ *   2. Groq   — openai/gpt-oss-20b    (smaller, separate daily allowance)
+ *   3. Gemini — gemini-2.5-flash      (independent backup)
+ *   4. Rules  — hiring tags only      (never sends guesses)
  *
- * If a provider hits its limit or rejects the key, it's skipped for the rest of the run.
+ * If a provider fails for ANY reason, it's skipped for the rest of the run and you get a
+ * Telegram warning with the exact error — the bot never fails silently.
  */
 const { sleep, log, clip } = require("./util");
 
@@ -63,26 +64,30 @@ async function httpPost(url, headers, payload, timeoutMs = 30000) {
   }
 }
 
-const groq = (model, key) => ({
-  id: `groq:${model}`,
-  family: "groq",
-  call: (sys, usr) =>
-    httpPost(
-      "https://api.groq.com/openai/v1/chat/completions",
-      { Authorization: `Bearer ${key}` },
-      {
-        model,
-        temperature: 0.1,
-        max_tokens: 350,
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: sys },
-          { role: "user", content: usr },
-        ],
-      }
-    ),
-  read: (text) => JSON.parse(text).choices?.[0]?.message?.content || "",
-});
+const GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+
+const groq = (model, key) => {
+  const auth = { Authorization: `Bearer ${key}` };
+  const msgs = (sys, usr) => [
+    { role: "system", content: sys },
+    { role: "user", content: usr },
+  ];
+  // gpt-oss models "reason" before answering. Keep reasoning short and leave room for the answer.
+  const reasoning = /gpt-oss/.test(model);
+  return {
+    id: `groq:${model}`,
+    family: "groq",
+    call: (sys, usr) => {
+      const payload = { model, temperature: 0.1, max_tokens: reasoning ? 1500 : 400, messages: msgs(sys, usr) };
+      if (reasoning) payload.reasoning_effort = "low";
+      else payload.response_format = { type: "json_object" };
+      return httpPost(GROQ_URL, auth, payload);
+    },
+    // Bare-minimum request, used once if Groq rejects an optional setting (HTTP 400).
+    callMinimal: (sys, usr) => httpPost(GROQ_URL, auth, { model, max_tokens: 1500, messages: msgs(sys, usr) }),
+    read: (text) => JSON.parse(text).choices?.[0]?.message?.content || "",
+  };
+};
 
 const gemini = (model, key) => ({
   id: `gemini:${model}`,
@@ -118,6 +123,17 @@ function providers(cfg) {
 function describeAi(cfg) {
   const p = providers(cfg).map((x) => x.id.split(":")[1]);
   return p.length ? p.join(" → ") + " → rules" : "Rules only (add GROQ_API_KEY for AI screening)";
+}
+
+/** Pull the human-readable message out of an API error body. */
+function errorText(text) {
+  try {
+    const j = JSON.parse(text);
+    const e = Array.isArray(j) ? j[0] && j[0].error : j.error;
+    return clip((e && (e.message || e.status)) || text, 150);
+  } catch {
+    return clip(text, 150);
+  }
 }
 
 const pick = (v, allowed, fallback) => {
@@ -159,10 +175,15 @@ function extractBudget(text) {
   return m ? m[0].replace(/\s+/g, "") : "";
 }
 
-/** Fallback when no AI is available. Stricter by design: weak matches won't clear the bar. */
+/**
+ * Fallback when the AI can't be used.
+ * Only explicit hiring tags ("[Hiring]", "SEEKING FREELANCER") are trusted here.
+ * Phrases like "need a website" also appear in ads, jokes and advice, so without
+ * the AI to read them, they are NOT sent.
+ */
 function rulesVerdict(post, match) {
   return {
-    isLead: true,
+    isLead: (match.tags || []).length > 0,
     confidence: Math.min(90, 45 + match.score * 4),
     category: match.category,
     jobType: "unclear",
@@ -182,10 +203,11 @@ async function classify(post, match, cfg, ctx) {
   for (const p of all) {
     if (ctx.exhausted.has(p.id)) continue;
 
-    for (let attempt = 0; attempt < 2; attempt++) {
+    let minimal = false;
+    for (let attempt = 0; attempt < 3; attempt++) {
       let r;
       try {
-        r = await p.call(sys, usr);
+        r = await (minimal && p.callMinimal ? p.callMinimal : p.call)(sys, usr);
       } catch (e) {
         log(`  AI ${p.id} network error: ${e.message}`);
         break;
@@ -199,7 +221,7 @@ async function classify(post, match, cfg, ctx) {
           /* fall through */
         }
         const v = parseVerdict(raw);
-        if (v) return { ...v, mode: p.id, usedAI: true };
+        if (v) return { ...v, mode: p.id, usedAI: true, aiFailed: false };
         log(`  AI ${p.id} gave unusable output, trying next provider.`);
         break;
       }
@@ -221,17 +243,28 @@ async function classify(post, match, cfg, ctx) {
         break;
       }
 
+      // 400 may just be an optional setting this model doesn't accept. Retry once with the bare minimum.
+      if (r.status === 400 && !minimal && p.callMinimal) {
+        minimal = true;
+        continue;
+      }
+
       if (r.status >= 500 && attempt === 0) {
         await sleep(1500);
         continue;
       }
 
-      log(`  AI ${p.id} HTTP ${r.status}: ${r.text.slice(0, 120).replace(/\s+/g, " ")}`);
+      // Anything else (404 retired model, bad model name, etc.) won't fix itself. Stop and tell the user.
+      ctx.exhausted.add(p.id);
+      const why = errorText(r.text);
+      log(`  AI ${p.id} HTTP ${r.status}: ${why}`);
+      ctx.warn(`ai:${p.id}:http${r.status}`, `AI model ${p.id} failed (HTTP ${r.status}): ${why}`);
       break;
     }
   }
 
-  return { ...rulesVerdict(post, match), mode: "rules", usedAI: false };
+  // aiFailed = an AI was configured but couldn't answer. Such posts are retried next run.
+  return { ...rulesVerdict(post, match), mode: "rules", usedAI: false, aiFailed: all.length > 0 };
 }
 
 function isAlertable(v, cfg) {
@@ -242,4 +275,4 @@ function isAlertable(v, cfg) {
   return true;
 }
 
-module.exports = { classify, isAlertable, parseVerdict, rulesVerdict, extractBudget, describeAi };
+module.exports = { classify, isAlertable, parseVerdict, rulesVerdict, extractBudget, describeAi, errorText };
