@@ -1,0 +1,16 @@
+{
+  "name": "job-hunter-bot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Scans Reddit, Hacker News, Bluesky and Mastodon for client leads and sends them to Telegram.",
+  "main": "src/index.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node src/index.js",
+    "dry": "node src/index.js --dry",
+    "ping": "node src/index.js --ping",
+    "test": "node test/run.js"
+  }
+}

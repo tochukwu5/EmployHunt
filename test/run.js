@@ -1,0 +1,175 @@
+"use strict";
+/**
+ * Offline tests — no API keys or internet needed.  Run with:  npm test
+ * They prove the filter separates real clients from sellers and noise.
+ */
+const assert = require("assert");
+const { scorePost } = require("../src/matcher");
+const { parseVerdict, rulesVerdict, extractBudget, isAlertable } = require("../src/classifier");
+const { formatLead } = require("../src/notify");
+const { rotate } = require("../src/state");
+
+let passed = 0;
+let failed = 0;
+function test(name, fn) {
+  try {
+    fn();
+    passed++;
+    console.log("  ✓", name);
+  } catch (e) {
+    failed++;
+    console.log("  ✗", name, "\n     ", e.message);
+  }
+}
+
+const P = (title, text, extra = {}) => ({ title, text, strict: false, ...extra });
+
+console.log("\nMatcher — should find real clients");
+test("Reddit [Hiring] flair", () => {
+  const r = scorePost(P("[Hiring] Need a React dev for dashboard", "Budget $800. Must know Node."));
+  assert.ok(r.pass, r.reason);
+});
+test("Trading request: indicator", () => {
+  const r = scorePost(P("", "I need a TradingView indicator that alerts me when price taps a 4H FVG"));
+  assert.ok(r.pass, r.reason);
+  assert.strictEqual(r.category, "trading");
+});
+test("Trading request: automate strategy", () => {
+  const r = scorePost(P("", "I have a trading strategy I want to automate on MT5, who can help?"));
+  assert.ok(r.pass, r.reason);
+  assert.strictEqual(r.category, "trading");
+});
+test("Weak intent + topic on a hiring board", () => {
+  const r = scorePost(P("", "anyone know someone who can set up a shopify store for my brand?"));
+  assert.ok(r.pass, r.reason);
+  assert.strictEqual(r.category, "ecommerce");
+});
+test("Hacker News SEEKING FREELANCER", () => {
+  const r = scorePost(P("", "SEEKING FREELANCER | Remote | React + Node to build our trading journal app"));
+  assert.ok(r.pass, r.reason);
+});
+test("slavelabour [Task]", () => {
+  const r = scorePost(P("[Task] Scrape 200 product pages into a spreadsheet", "Paying $40"));
+  assert.ok(r.pass, r.reason);
+});
+test("Plural still matches ('trading bots')", () => {
+  const r = scorePost(P("", "Can someone build me a couple of trading bots for crypto?"));
+  assert.ok(r.pass, r.reason);
+});
+test("Client mentioning 'available for work' deep in the post is NOT rejected", () => {
+  const long = "We need a developer to build a booking website for our clinic. ".repeat(6);
+  const r = scorePost(P("Need a developer for clinic booking site", long + " Please only reply if you are available for work this month."));
+  assert.ok(r.pass, r.reason);
+});
+test("Hiring tag beats a seller phrase", () => {
+  const r = scorePost(P("[Hiring] web developer", "Hire me? No — we're hiring you. Need a landing page."));
+  assert.ok(r.pass, r.reason);
+});
+
+console.log("\nMatcher — should reject sellers and noise");
+test("Reddit [For Hire]", () => {
+  assert.ok(!scorePost(P("[For Hire] Full stack developer", "Need a website? I can build it.")).pass);
+});
+test("slavelabour [Offer]", () => {
+  assert.ok(!scorePost(P("[Offer] I will build your website for $50", "")).pass);
+});
+test("Hacker News SEEKING WORK", () => {
+  assert.ok(!scorePost(P("", "SEEKING WORK | Remote | React, Node, 6 yrs")).pass);
+});
+test("Untagged seller", () => {
+  assert.ok(!scorePost(P("", "I build websites for small businesses. DM me for rates!")).pass);
+});
+test("Rhetorical seller hook", () => {
+  assert.ok(!scorePost(P("", "Need a website? I design fast modern sites. Portfolio in bio.")).pass);
+});
+test("Job seeker", () => {
+  assert.ok(!scorePost(P("", "Open to work! Frontend developer looking for my next role #opentowork")).pass);
+});
+test("Plain discussion, no intent", () => {
+  assert.ok(!scorePost(P("", "Pine Script v6 finally has proper arrays, love it")).pass);
+});
+test("Weak intent without a topic", () => {
+  assert.ok(!scorePost(P("", "can someone explain why the market dumped today?")).pass);
+});
+test("Weak intent is not enough on a strict (busy) source", () => {
+  const r = scorePost(P("", "anyone know a good indicator for scalping?", { strict: true }));
+  assert.ok(!r.pass, r.reason);
+});
+test("Strong intent still passes on a strict source", () => {
+  const r = scorePost(P("", "I need an indicator that marks the opening range", { strict: true }));
+  assert.ok(r.pass, r.reason);
+});
+test("Word boundary: 'idea developer' is not 'ea developer'", () => {
+  const r = scorePost(P("", "great idea developer community meetup tonight"));
+  assert.ok(!r.pass);
+  assert.ok(!(r.topics && r.topics.trading));
+});
+
+console.log("\nMatcher — ranking");
+test("Trading leads score above generic ones", () => {
+  const t = scorePost(P("", "Need a developer to build a TradingView indicator"));
+  const g = scorePost(P("", "Need a developer to build a website"));
+  assert.ok(t.score > g.score, `${t.score} vs ${g.score}`);
+});
+
+console.log("\nAI output parsing");
+test("Clean JSON", () => {
+  const v = parseVerdict('{"is_lead":true,"confidence":88,"category":"trading","job_type":"freelance","need":"NQ alert bot","budget":"$300","fit":"high","red_flags":"none","reply_angle":"Hi"}');
+  assert.strictEqual(v.isLead, true);
+  assert.strictEqual(v.confidence, 88);
+  assert.strictEqual(v.category, "trading");
+});
+test("JSON wrapped in ``` fences", () => {
+  const v = parseVerdict('```json\n{"is_lead":false,"confidence":20,"category":"web"}\n```');
+  assert.strictEqual(v.isLead, false);
+});
+test("Bad values get safe defaults", () => {
+  const v = parseVerdict('{"is_lead":"true","confidence":"250","category":"banana","fit":"amazing"}');
+  assert.strictEqual(v.isLead, true);
+  assert.strictEqual(v.confidence, 100);
+  assert.strictEqual(v.category, "other");
+  assert.strictEqual(v.fit, "medium");
+});
+test("Garbage returns null (falls back to rules)", () => {
+  assert.strictEqual(parseVerdict("Sure! Here you go:"), null);
+});
+
+console.log("\nRules fallback");
+test("Budget extraction", () => {
+  assert.strictEqual(extractBudget("budget is $500 - $800 max"), "$500-$800");
+  assert.strictEqual(extractBudget("paying $1.5k"), "$1.5k");
+});
+test("Strong match clears the bar without AI", () => {
+  const m = scorePost(P("[Hiring] Need a developer", "Build a trading dashboard"));
+  const v = rulesVerdict(P("[Hiring] Need a developer", "Build a trading dashboard"), m);
+  assert.ok(isAlertable(v, { ai: { minConfidence: 60 }, includeFulltime: true }));
+});
+test("Weak match does NOT clear the bar without AI", () => {
+  const post = P("", "anyone know someone for a website?");
+  const m = scorePost(post);
+  const v = rulesVerdict(post, m);
+  assert.ok(!isAlertable(v, { ai: { minConfidence: 60 }, includeFulltime: true }), `conf ${v.confidence}`);
+});
+
+console.log("\nTelegram formatting");
+test("HTML special characters are escaped", () => {
+  const html = formatLead(
+    { source: "Reddit", where: "r/test", author: "u/x", url: "https://x.com/?a=1&b=2", createdAt: 0 },
+    { confidence: 90, category: "web", need: "Fix <script> & stuff", budget: "$5", fit: "high", jobType: "freelance", redFlags: "none", replyAngle: "", mode: "groq" }
+  );
+  assert.ok(html.includes("Fix &lt;script&gt; &amp; stuff"));
+  assert.ok(html.includes('href="https://x.com/?a=1&amp;b=2"'));
+  assert.ok(!html.includes("<script>"));
+});
+
+console.log("\nQuery rotation");
+test("Rotates through the list and wraps around", () => {
+  const st = { cursors: {} };
+  const list = ["a", "b", "c", "d", "e"];
+  assert.deepStrictEqual(rotate(st, "k", list, 2), ["a", "b"]);
+  assert.deepStrictEqual(rotate(st, "k", list, 2), ["c", "d"]);
+  assert.deepStrictEqual(rotate(st, "k", list, 2), ["e", "a"]);
+});
+
+console.log(`\n${passed} passed, ${failed} failed\n`);
+process.exit(failed ? 1 : 0);

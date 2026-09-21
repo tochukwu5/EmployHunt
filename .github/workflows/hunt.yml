@@ -1,0 +1,71 @@
+name: Job Hunter
+
+on:
+  schedule:
+    # Every hour at minute 7. GitHub is busiest on the hour, so :07 runs more reliably.
+    # For every 2 hours instead, use: "7 */2 * * *"
+    - cron: "7 * * * *"
+  workflow_dispatch: {}   # adds a "Run workflow" button so you can test any time
+
+permissions:
+  contents: write         # lets the bot save state/state.json back to the repo
+
+concurrency:
+  group: job-hunter       # never run two at once (they'd overwrite each other's state)
+  cancel-in-progress: false
+
+jobs:
+  hunt:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Hunt for leads
+        run: node src/index.js
+        env:
+          # Required
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          # AI (free) — strongly recommended
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # Sources (optional but recommended)
+          REDDIT_CLIENT_ID: ${{ secrets.REDDIT_CLIENT_ID }}
+          REDDIT_CLIENT_SECRET: ${{ secrets.REDDIT_CLIENT_SECRET }}
+          REDDIT_USERNAME: ${{ secrets.REDDIT_USERNAME }}
+          BLUESKY_HANDLE: ${{ secrets.BLUESKY_HANDLE }}
+          BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
+          # Tuning — optional repo Variables. Blank = the default in config.js
+          MIN_CONFIDENCE: ${{ vars.MIN_CONFIDENCE }}
+          MAX_AI_CALLS_PER_RUN: ${{ vars.MAX_AI_CALLS_PER_RUN }}
+          MAX_POST_AGE_HOURS: ${{ vars.MAX_POST_AGE_HOURS }}
+          SEARCH_QUERIES_PER_RUN: ${{ vars.SEARCH_QUERIES_PER_RUN }}
+          INCLUDE_FULLTIME: ${{ vars.INCLUDE_FULLTIME }}
+          HEARTBEAT_HOUR_UTC: ${{ vars.HEARTBEAT_HOUR_UTC }}
+          ENABLE_REDDIT: ${{ vars.ENABLE_REDDIT }}
+          ENABLE_HACKERNEWS: ${{ vars.ENABLE_HACKERNEWS }}
+          ENABLE_BLUESKY: ${{ vars.ENABLE_BLUESKY }}
+          ENABLE_MASTODON: ${{ vars.ENABLE_MASTODON }}
+
+      - name: Save memory of seen posts
+        if: always()
+        run: |
+          if [ -f state/state.json ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add state/state.json
+            if ! git diff --cached --quiet; then
+              git commit -m "chore: update hunter state [skip ci]"
+              for i in 1 2 3; do
+                git pull --rebase -X theirs && git push && break
+                sleep 5
+              done
+            fi
+          fi
