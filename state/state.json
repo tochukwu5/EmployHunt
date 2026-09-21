@@ -1,9 +1,35 @@
 {
   "version": 1,
-  "seen": {},
-  "cursors": {},
-  "stats": {},
-  "warned": {},
-  "lastHeartbeat": null,
-  "lastRun": null
+  "seen": {
+    "bsky:at://did:plc:hjmtdxjku55ampx6efy5tzdc/app.bsky.feed.post/3mvwylyyw4s2a": 1790030705,
+    "bsky:at://did:plc:6ysnlorahv2rlvthhlc4w5zn/app.bsky.feed.post/3mvz33gscbs2p": 1790030705,
+    "bsky:at://did:plc:wzfyubmlduzuvwdyslxpyu7k/app.bsky.feed.post/3mw27fypk2c2n": 1790030705,
+    "bsky:at://did:plc:bsaslxgxpf6ia445udnrc7kh/app.bsky.feed.post/3mvxmhjfhx22g": 1790030705,
+    "bsky:at://did:plc:btsw4rxkahmnez6ndtwp54yu/app.bsky.feed.post/3mvwrmjrcws26": 1790030705,
+    "bsky:at://did:plc:kd4bgo2qrdr4dmfy6cdfhhsh/app.bsky.feed.post/3mvwdblm3gk24": 1790030705,
+    "bsky:at://did:plc:wrm5kgrxkhwrq4irrxwbjw7o/app.bsky.feed.post/3mvw5gm2isk2z": 1790030705,
+    "bsky:at://did:plc:ywh4n7ihypdnwb4n2kzlzrht/app.bsky.feed.post/3mvw4ctcpz22c": 1790030705,
+    "bsky:at://did:plc:i2yzt2dn5xhysuchkhdtz4ek/app.bsky.feed.post/3mvywv5tqas2q": 1790030705,
+    "bsky:at://did:plc:weskbs5nou7euz7ee3hwbscc/app.bsky.feed.post/3mvxgbvnhgs2k": 1790030705,
+    "bsky:at://did:plc:2g3p466mwex6cpt7pnlhi2eq/app.bsky.feed.post/3mw22hwlqes2c": 1790030705,
+    "bsky:at://did:plc:oyutroj66br2qe2mtl6v6ekl/app.bsky.feed.post/3mw2fc24lak26": 1790030705,
+    "bsky:at://did:plc:vz5svhiy4aexrc2b36ybl6xi/app.bsky.feed.post/3mvx22y755n2q": 1790030705
+  },
+  "cursors": {
+    "bluesky": 12,
+    "hackernews": 3
+  },
+  "stats": {
+    "2026-09-21": {
+      "runs": 1,
+      "scanned": 439,
+      "reviewed": 13,
+      "leads": 11
+    }
+  },
+  "warned": {
+    "source:reddit": "2026-09-21"
+  },
+  "lastHeartbeat": "2026-09-21",
+  "lastRun": 1790030705
 }
