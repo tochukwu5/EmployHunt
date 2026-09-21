@@ -16,13 +16,13 @@
     "bsky:at://did:plc:vz5svhiy4aexrc2b36ybl6xi/app.bsky.feed.post/3mvx22y755n2q": 1790030705
   },
   "cursors": {
-    "bluesky": 12,
-    "hackernews": 3
+    "bluesky": 24,
+    "hackernews": 6
   },
   "stats": {
     "2026-09-21": {
-      "runs": 1,
-      "scanned": 439,
+      "runs": 2,
+      "scanned": 850,
       "reviewed": 13,
       "leads": 11
     }
@@ -31,5 +31,5 @@
     "source:reddit": "2026-09-21"
   },
   "lastHeartbeat": "2026-09-21",
-  "lastRun": 1790030705
+  "lastRun": 1790032368
 }
