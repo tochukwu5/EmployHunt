@@ -13,11 +13,13 @@
     "bsky:at://did:plc:weskbs5nou7euz7ee3hwbscc/app.bsky.feed.post/3mvxgbvnhgs2k": 1790030705,
     "bsky:at://did:plc:2g3p466mwex6cpt7pnlhi2eq/app.bsky.feed.post/3mw22hwlqes2c": 1790030705,
     "bsky:at://did:plc:oyutroj66br2qe2mtl6v6ekl/app.bsky.feed.post/3mw2fc24lak26": 1790030705,
-    "bsky:at://did:plc:vz5svhiy4aexrc2b36ybl6xi/app.bsky.feed.post/3mvx22y755n2q": 1790030705
+    "bsky:at://did:plc:vz5svhiy4aexrc2b36ybl6xi/app.bsky.feed.post/3mvx22y755n2q": 1790030705,
+    "bsky:at://did:plc:v5vre7arsevk2kjit5n7pttm/app.bsky.feed.post/3mvzzpe65l52t": 1790038986,
+    "bsky:at://did:plc:aapqzqpxffym4b6lyoh4kvng/app.bsky.feed.post/3mw2anlkh6224": 1790038986
   },
   "cursors": {
-    "bluesky": 24,
-    "hackernews": 6
+    "bluesky": 36,
+    "hackernews": 9
   },
   "stats": {
     "2026-09-21": {
@@ -25,11 +27,17 @@
       "scanned": 850,
       "reviewed": 13,
       "leads": 11
+    },
+    "2026-09-22": {
+      "runs": 1,
+      "scanned": 420,
+      "reviewed": 2,
+      "leads": 1
     }
   },
   "warned": {
     "source:reddit": "2026-09-21"
   },
   "lastHeartbeat": "2026-09-21",
-  "lastRun": 1790032368
+  "lastRun": 1790038986
 }
