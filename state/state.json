@@ -21,8 +21,8 @@
     "bsky:at://did:plc:kna56dubdxzw34oyq4kg4wdf/app.bsky.feed.post/3mw2s2olsrc2y": 1790040901
   },
   "cursors": {
-    "bluesky": 20,
-    "hackernews": 15
+    "bluesky": 32,
+    "hackernews": 18
   },
   "stats": {
     "2026-09-21": {
@@ -32,8 +32,8 @@
       "leads": 11
     },
     "2026-09-22": {
-      "runs": 3,
-      "scanned": 1254,
+      "runs": 4,
+      "scanned": 1669,
       "reviewed": 5,
       "leads": 1
     }
@@ -44,5 +44,5 @@
     "source:bluesky": "2026-09-22"
   },
   "lastHeartbeat": "2026-09-22",
-  "lastRun": 1790061571
+  "lastRun": 1790061778
 }
