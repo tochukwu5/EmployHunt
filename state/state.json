@@ -22,11 +22,13 @@
     "bsky:at://did:plc:atu5pvcjux3i2g5ezorx4x5y/app.bsky.feed.post/3mw3ldxnnii2u": 1790062040,
     "bsky:at://did:plc:5pn5upleucf62qfnqkxnymjx/app.bsky.feed.post/3mw3bgca7zs25": 1790062282,
     "bsky:at://did:plc:jk24mxg6nza4tkcndj253zrz/app.bsky.feed.post/3mw4o2uiyzk2p": 1790111874,
-    "bsky:at://did:plc:5sezdblggq2jzipfhy3dalhv/app.bsky.feed.post/3mw4nbsptq22n": 1790111874
+    "bsky:at://did:plc:5sezdblggq2jzipfhy3dalhv/app.bsky.feed.post/3mw4nbsptq22n": 1790111874,
+    "masto:https://aus.social/users/gMoon/statuses/117317186613517238": 1790123532,
+    "masto:https://mastodon.social/users/boldlyblue/statuses/117316879739323051": 1790123532
   },
   "cursors": {
-    "bluesky": 8,
-    "hackernews": 2
+    "bluesky": 20,
+    "hackernews": 5
   },
   "stats": {
     "2026-09-21": {
@@ -40,6 +42,12 @@
       "scanned": 5014,
       "reviewed": 9,
       "leads": 1
+    },
+    "2026-09-23": {
+      "runs": 1,
+      "scanned": 420,
+      "reviewed": 2,
+      "leads": 0
     }
   },
   "warned": {
@@ -48,5 +56,5 @@
     "source:bluesky": "2026-09-22"
   },
   "lastHeartbeat": "2026-09-22",
-  "lastRun": 1790111874
+  "lastRun": 1790123532
 }
