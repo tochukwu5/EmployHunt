@@ -21,14 +21,14 @@
     "bsky:at://did:plc:kna56dubdxzw34oyq4kg4wdf/app.bsky.feed.post/3mw2s2olsrc2y": 1790040901,
     "bsky:at://did:plc:atu5pvcjux3i2g5ezorx4x5y/app.bsky.feed.post/3mw3ldxnnii2u": 1790062040,
     "bsky:at://did:plc:5pn5upleucf62qfnqkxnymjx/app.bsky.feed.post/3mw3bgca7zs25": 1790062282,
-    "bsky:at://did:plc:jk24mxg6nza4tkcndj253zrz/app.bsky.feed.post/3mw4o2uiyzk2p": 1790111874,
-    "bsky:at://did:plc:5sezdblggq2jzipfhy3dalhv/app.bsky.feed.post/3mw4nbsptq22n": 1790111874,
-    "masto:https://aus.social/users/gMoon/statuses/117317186613517238": 1790123532,
-    "masto:https://mastodon.social/users/boldlyblue/statuses/117316879739323051": 1790123532
+    "masto:https://aus.social/users/gMoon/statuses/117317186613517238": 1790154990,
+    "bsky:at://did:plc:r3sd5yugeophs6vydwb6764f/app.bsky.feed.post/3mw6dwsaezs2m": 1790154990,
+    "bsky:at://did:plc:yam5f4vxr3ceazfhpoprbm72/app.bsky.feed.post/3mw6bjjcxma27": 1790154990,
+    "masto:https://mastodon.social/users/boldlyblue/statuses/117316879739323051": 1790154990
   },
   "cursors": {
-    "bluesky": 32,
-    "hackernews": 8
+    "bluesky": 12,
+    "hackernews": 33
   },
   "stats": {
     "2026-09-21": {
@@ -44,9 +44,9 @@
       "leads": 1
     },
     "2026-09-23": {
-      "runs": 2,
-      "scanned": 838,
-      "reviewed": 2,
+      "runs": 1,
+      "scanned": 422,
+      "reviewed": 4,
       "leads": 0
     }
   },
@@ -55,6 +55,6 @@
     "bluesky:auth": "2026-09-22",
     "source:bluesky": "2026-09-22"
   },
-  "lastHeartbeat": "2026-09-22",
-  "lastRun": 1790143071
+  "lastHeartbeat": "2026-09-23",
+  "lastRun": 1790154990
 }
