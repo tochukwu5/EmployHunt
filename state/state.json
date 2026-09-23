@@ -27,8 +27,8 @@
     "masto:https://mastodon.social/users/boldlyblue/statuses/117316879739323051": 1790154990
   },
   "cursors": {
-    "bluesky": 24,
-    "hackernews": 36
+    "bluesky": 36,
+    "hackernews": 39
   },
   "stats": {
     "2026-09-21": {
@@ -44,8 +44,8 @@
       "leads": 1
     },
     "2026-09-23": {
-      "runs": 2,
-      "scanned": 840,
+      "runs": 3,
+      "scanned": 1261,
       "reviewed": 4,
       "leads": 0
     }
@@ -56,5 +56,5 @@
     "source:bluesky": "2026-09-22"
   },
   "lastHeartbeat": "2026-09-23",
-  "lastRun": 1790155111
+  "lastRun": 1790163279
 }
