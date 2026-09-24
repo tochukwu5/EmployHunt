@@ -4,7 +4,7 @@ on:
   schedule:
     # Every hour at minute 7. GitHub is busiest on the hour, so :07 runs more reliably.
     # For every 2 hours instead, use: "7 */2 * * *"
-        - cron: "15 * * * *"
+       - cron: "15 */2 * * *"
   workflow_dispatch: {}   # adds a "Run workflow" button so you can test any time
 
 permissions:
