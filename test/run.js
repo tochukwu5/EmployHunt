@@ -215,5 +215,80 @@ test("Rotates through the list and wraps around", () => {
   assert.deepStrictEqual(rotate(st, "k", list, 2), ["e", "a"]);
 });
 
-console.log(`\n${passed} passed, ${failed} failed\n`);
-process.exit(failed ? 1 : 0);
+async function runTwitterTests() {
+  console.log("\nTwitter/X source integration");
+  const twitterSrc = require("../src/sources/twitter");
+  const now = Math.floor(Date.now() / 1000);
+
+  // No API key configured — should warn and return empty, never throw
+  {
+    const cfg = { sources: { twitter: { apiKey: undefined } }, maxPostAgeHours: 12, searchQueriesPerRun: 2 };
+    const st = { cursors: {} };
+    let warned = false;
+    const ctx = { now, warn: () => { warned = true; } };
+    const posts = await twitterSrc.collect(cfg, st, ctx);
+    test("Missing API key warns and returns no posts (never throws)", () => {
+      assert.strictEqual(posts.length, 0);
+      assert.ok(warned);
+    });
+  }
+
+  // Real API shape (from twitterapi.io docs) — replies must be dropped, auth header required
+  {
+    const REAL_SHAPE = {
+      tweets: [
+        { id: "1", url: "https://x.com/a/status/1", text: "Need a developer for our trading dashboard", createdAt: "Wed Sep 24 10:00:00 +0000 2026", isReply: false, author: { userName: "client1" } },
+        { id: "2", url: "https://x.com/b/status/2", text: "same, need a developer too lol", createdAt: "Wed Sep 24 10:05:00 +0000 2026", isReply: true, author: { userName: "replier" } },
+      ],
+      has_next_page: false, next_cursor: "",
+    };
+    const origFetch = global.fetch;
+    global.fetch = async (url, opts) => {
+      if (!opts || opts.headers["X-API-Key"] !== "k") throw new Error("auth header missing");
+      return { ok: true, status: 200, headers: { get: () => null }, text: async () => JSON.stringify(REAL_SHAPE) };
+    };
+    const cfg = { sources: { twitter: { apiKey: "k" } }, maxPostAgeHours: 12, searchQueriesPerRun: 1 };
+    const st = { cursors: {} };
+    const ctx = { now, warn: () => {} };
+    const posts = await twitterSrc.collect(cfg, st, ctx);
+    global.fetch = origFetch;
+
+    test("Real API response: reply is dropped, original tweet kept", () => {
+      assert.strictEqual(posts.length, 1);
+      assert.strictEqual(posts[0].id, "twitter:1");
+      assert.strictEqual(posts[0].author, "@client1");
+    });
+    test("Twitter dates parse to a sane Unix timestamp", () => {
+      assert.ok(posts[0].createdAt > 1_700_000_000 && posts[0].createdAt < 2_000_000_000);
+    });
+  }
+
+  // 401 should stop immediately, not burn every remaining rotated query
+  {
+    let calls = 0;
+    const origFetch = global.fetch;
+    global.fetch = async () => {
+      calls++;
+      return { ok: false, status: 401, headers: { get: () => null }, text: async () => "{}" };
+    };
+    const cfg = { sources: { twitter: { apiKey: "bad" } }, maxPostAgeHours: 12, searchQueriesPerRun: 10 };
+    const st = { cursors: {} };
+    const ctx = { now, warn: () => {} };
+    let threw = false;
+    try {
+      await twitterSrc.collect(cfg, st, ctx);
+    } catch {
+      threw = true;
+    }
+    global.fetch = origFetch;
+    test("A rejected (401) key stops after 1 call, not all 10 queries", () => {
+      assert.ok(threw);
+      assert.strictEqual(calls, 1);
+    });
+  }
+}
+
+runTwitterTests().then(() => {
+  console.log(`\n${passed} passed, ${failed} failed\n`);
+  process.exit(failed ? 1 : 0);
+});

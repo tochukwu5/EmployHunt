@@ -96,5 +96,12 @@ module.exports = {
       instances: ["mastodon.social", "hachyderm.io", "fosstodon.org"],
       hashtags: ["hiring", "getfedihired", "fedihired", "freelance", "webdev", "webdevelopment", "lookingfor"],
     },
+
+    twitter: {
+      // Paid — via twitterapi.io, ~$0.15 per 1,000 tweets returned. Off by default so it
+      // never turns on (and never costs anything) without you explicitly setting it up.
+      enabled: bool(env.ENABLE_TWITTER, false),
+      apiKey: env.TWITTERAPI_KEY,
+    },
   },
 };
