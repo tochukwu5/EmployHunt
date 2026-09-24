@@ -29,11 +29,17 @@
     "bsky:at://did:plc:gqqnuptzei2gp24u3rybzvmk/app.bsky.feed.post/3mw6sf2xpil2q": 1790182647,
     "bsky:at://did:plc:ksuhtfzzsohr5y6ql3iv4j37/app.bsky.feed.post/3mw6hlowvnx2m": 1790182647,
     "bsky:at://did:plc:ksuhtfzzsohr5y6ql3iv4j37/app.bsky.feed.post/3mw6hldnxuf2h": 1790182647,
-    "bsky:at://did:plc:ksuhtfzzsohr5y6ql3iv4j37/app.bsky.feed.post/3mw6hlcqray2y": 1790182647
+    "bsky:at://did:plc:ksuhtfzzsohr5y6ql3iv4j37/app.bsky.feed.post/3mw6hlcqray2y": 1790182647,
+    "masto:https://mastodon.social/ap/users/117240494355156210/statuses/117325418085026610": 1790244002,
+    "bsky:at://did:plc:x6wjzcu3trhg5z7l6agh5sev/app.bsky.feed.post/3mw7vjv6lan23": 1790244002,
+    "bsky:at://did:plc:yhpxjxr45vhfid7j6u4lzvrs/app.bsky.feed.post/3mw7qwtcxfl2r": 1790244002,
+    "bsky:at://did:plc:dcsztatinlqasw57fzhhjirf/app.bsky.feed.post/3mwasjb5hlk2v": 1790244002,
+    "bsky:at://did:plc:hqpozz4w3mlzt7bacbtfdcbq/app.bsky.feed.post/3mw7yeqyyfc2h": 1790244002,
+    "bsky:at://did:plc:kirmc2jxmljm2iwrl6n5ouan/app.bsky.feed.post/3mw7t6iwdqk2z": 1790244002
   },
   "cursors": {
-    "bluesky": 36,
-    "hackernews": 39
+    "bluesky": 8,
+    "hackernews": 2
   },
   "stats": {
     "2026-09-21": {
@@ -55,10 +61,10 @@
       "leads": 0
     },
     "2026-09-24": {
-      "runs": 2,
-      "scanned": 831,
-      "reviewed": 0,
-      "leads": 0
+      "runs": 3,
+      "scanned": 1256,
+      "reviewed": 6,
+      "leads": 1
     }
   },
   "warned": {
@@ -66,6 +72,6 @@
     "bluesky:auth": "2026-09-22",
     "source:bluesky": "2026-09-22"
   },
-  "lastHeartbeat": "2026-09-23",
-  "lastRun": 1790225338
+  "lastHeartbeat": "2026-09-24",
+  "lastRun": 1790244002
 }
