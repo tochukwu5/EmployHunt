@@ -56,7 +56,7 @@ module.exports = {
   // 12 hours still covers any missed hourly runs.
   maxPostAgeHours: num(env.MAX_POST_AGE_HOURS, 12),
   // How many Bluesky search phrases to run each time (they rotate through the full list).
-  searchQueriesPerRun: num(env.SEARCH_QUERIES_PER_RUN, 12),
+  searchQueriesPerRun: num(env.SEARCH_QUERIES_PER_RUN, 24),
   // Also alert on full-time job postings, not only freelance gigs.
   includeFulltime: bool(env.INCLUDE_FULLTIME, true),
   // Daily "bot is alive" summary, sent on the first run after this UTC hour. 7 UTC = 8am in Nigeria.
