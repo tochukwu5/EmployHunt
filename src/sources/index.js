@@ -12,8 +12,9 @@ const reddit = require("./reddit");
 const hackernews = require("./hackernews");
 const bluesky = require("./bluesky");
 const mastodon = require("./mastodon");
+const twitter = require("./twitter");
 
-const ALL = [reddit, hackernews, bluesky, mastodon];
+const ALL = [reddit, hackernews, bluesky, mastodon, twitter];
 
 function enabledSources(cfg) {
   return ALL.filter((s) => cfg.sources[s.key] && cfg.sources[s.key].enabled);
