@@ -42,6 +42,7 @@ jobs:
           REDDIT_USERNAME: ${{ secrets.REDDIT_USERNAME }}
           BLUESKY_HANDLE: ${{ secrets.BLUESKY_HANDLE }}
           BLUESKY_APP_PASSWORD: ${{ secrets.BLUESKY_APP_PASSWORD }}
+          TWITTERAPI_KEY: ${{ secrets.TWITTERAPI_KEY }}
           # Tuning — optional repo Variables. Blank = the default in config.js
           MIN_CONFIDENCE: ${{ vars.MIN_CONFIDENCE }}
           MAX_AI_CALLS_PER_RUN: ${{ vars.MAX_AI_CALLS_PER_RUN }}
@@ -53,6 +54,7 @@ jobs:
           ENABLE_HACKERNEWS: ${{ vars.ENABLE_HACKERNEWS }}
           ENABLE_BLUESKY: ${{ vars.ENABLE_BLUESKY }}
           ENABLE_MASTODON: ${{ vars.ENABLE_MASTODON }}
+          ENABLE_TWITTER: ${{ vars.ENABLE_TWITTER }}
 
       - name: Save memory of seen posts
         if: always()
