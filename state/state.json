@@ -36,11 +36,23 @@
     "bsky:at://did:plc:dcsztatinlqasw57fzhhjirf/app.bsky.feed.post/3mwasjb5hlk2v": 1790244002,
     "bsky:at://did:plc:hqpozz4w3mlzt7bacbtfdcbq/app.bsky.feed.post/3mw7yeqyyfc2h": 1790244002,
     "bsky:at://did:plc:kirmc2jxmljm2iwrl6n5ouan/app.bsky.feed.post/3mw7t6iwdqk2z": 1790244002,
-    "hn:49829179": 1790262310
+    "hn:49829179": 1790262310,
+    "bsky:at://did:plc:jkjrc7wyixxa7pfvvofb7tn6/app.bsky.feed.post/3mwbpz4nq672f": 1790273410,
+    "bsky:at://did:plc:etugyycox5mmpbnqfrdvbta7/app.bsky.feed.post/3mwbloyspez2r": 1790273410,
+    "bsky:at://did:plc:shqh3kmf2oc73grnix2g4u5j/app.bsky.feed.post/3mwbln3oictz2": 1790273410,
+    "bsky:at://did:plc:wfk4pom5ubpbrtjn6emxxm25/app.bsky.feed.post/3mwba2nldxc2a": 1790273410,
+    "bsky:at://did:plc:uf6jztgw43ymv2r7652qtdhv/app.bsky.feed.post/3mwb5zgvoev2h": 1790273410,
+    "bsky:at://did:plc:l5yhwcjv52unfdcjelomkphq/app.bsky.feed.post/3mwbw52ldic2r": 1790277011,
+    "bsky:at://did:plc:65b3kbil47einb4qjb232cot/app.bsky.feed.post/3mwboj3pekj2t": 1790277011,
+    "bsky:at://did:plc:gxaf2awdc2ncksngyxyn3xw7/app.bsky.feed.post/3mwboiuu4yl22": 1790277011,
+    "bsky:at://did:plc:xbckyjil22rvyeudg3d3445t/app.bsky.feed.post/3mwbwujcxg623": 1790280611,
+    "bsky:at://did:plc:sthsysekouvbjgekgplqoitq/app.bsky.feed.post/3mwc77hj2hs2u": 1790287810,
+    "hn:49836294": 1790295010,
+    "bsky:at://did:plc:5ksbp4vtb2v6sr6ozflxdkeh/app.bsky.feed.post/3mwcdeyrjpk2i": 1790295010
   },
   "cursors": {
-    "bluesky": 20,
-    "hackernews": 5
+    "bluesky": 28,
+    "hackernews": 26
   },
   "stats": {
     "2026-09-21": {
@@ -62,10 +74,16 @@
       "leads": 0
     },
     "2026-09-24": {
-      "runs": 4,
-      "scanned": 1682,
-      "reviewed": 7,
+      "runs": 10,
+      "scanned": 4284,
+      "reviewed": 17,
       "leads": 1
+    },
+    "2026-09-25": {
+      "runs": 1,
+      "scanned": 439,
+      "reviewed": 2,
+      "leads": 0
     }
   },
   "warned": {
@@ -74,5 +92,5 @@
     "source:bluesky": "2026-09-22"
   },
   "lastHeartbeat": "2026-09-24",
-  "lastRun": 1790262310
+  "lastRun": 1790295010
 }
