@@ -97,11 +97,13 @@ module.exports = {
       hashtags: ["hiring", "getfedihired", "fedihired", "freelance", "webdev", "webdevelopment", "lookingfor"],
     },
 
-    twitter: {
+     twitter: {
       // Paid — via twitterapi.io, ~$0.15 per 1,000 tweets returned. Off by default so it
       // never turns on (and never costs anything) without you explicitly setting it up.
       enabled: bool(env.ENABLE_TWITTER, false),
-      apiKey: env.TWITTERAPI_KEY,
+      // Supports up to 4 keys (4 separate twitterapi.io accounts). It always tries them
+      // in this order and falls through to the next one when a key runs out of credits.
+      apiKeys: [env.TWITTERAPI_KEY, env.TWITTERAPI_KEY_2, env.TWITTERAPI_KEY_3, env.TWITTERAPI_KEY_4].filter(Boolean),
     },
   },
 };

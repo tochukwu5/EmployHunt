@@ -1,18 +1,4 @@
 "use strict";
-/**
- * TWITTER / X — paid, via twitterapi.io (a third-party gateway, not official X API).
- *
- * Uses GET /twitter/tweet/advanced_search, rotating through SEARCH_QUERIES the same way
- * Bluesky does. Billed per tweet RETURNED, not per call — an empty search costs the
- * 15-credit minimum ($0.00015), so quiet keywords cost almost nothing.
- *
- * Rate limit: the free/pay-as-you-go tier is 0.2 QPS (one request per 5 seconds). This file
- * paces every call 5.5s apart to stay under that — raising SEARCH_QUERIES_PER_RUN makes
- * this source take longer per run, not fail. At 24 queries that's ~2.2 minutes, well inside
- * the 15-minute workflow timeout.
- *
- * Auth header per the API spec is "X-API-Key" (not "Authorization: Bearer ...").
- */
 const { fetchJson, sleep, toEpoch } = require("../util");
 const { rotate } = require("../state");
 const { SEARCH_QUERIES } = require("../keywords");
@@ -20,22 +6,45 @@ const { SEARCH_QUERIES } = require("../keywords");
 const key = "twitter";
 const name = "Twitter/X";
 const API = "https://api.twitterapi.io/twitter/tweet/advanced_search";
+const MIN_GAP_MS = 5500; // paces requests to stay under 0.2 QPS limit
 
-// Paces requests to stay under the account's 0.2 QPS (1 request / 5s) limit.
-const MIN_GAP_MS = 5500;
-
-/**
- * Exact phrase, original tweets only (no replies/retweets), English, and only what's
- * new since the last check. since_time must be Unix seconds per the API's query syntax.
- */
 function buildQuery(phrase, sinceEpoch) {
   return `"${phrase}" -filter:replies -filter:retweets lang:en since_time:${sinceEpoch}`;
 }
 
+// Tries each key in order for a single query. Returns { res, keyIndex } on success.
+// A key that comes back 401 (bad key) or 402 (out of credits) is skipped for the
+// REST of this run (remembered in badKeys), so later queries don't waste time
+// retrying a dead key.
+async function fetchWithKeyFallback(url, keys, startAt, badKeys, ctx) {
+  let lastErr = null;
+  for (let i = startAt; i < keys.length; i++) {
+    if (badKeys.has(i)) continue;
+    try {
+      const res = await fetchJson(url, { headers: { "X-API-Key": keys[i] } }, { retries: 1 });
+      return { res, keyIndex: i };
+    } catch (e) {
+      if (e.status === 401 || e.status === 402) {
+        badKeys.add(i);
+        ctx.warn(
+          `twitter:key${i + 1}`,
+          `Twitter API key #${i + 1} is ${e.status === 402 ? "out of credits" : "invalid"}. Switching to the next key.`
+        );
+        lastErr = e;
+        continue;
+      }
+      throw e;
+    }
+  }
+  if (lastErr) throw lastErr;
+  throw new Error("All Twitter API keys are unavailable (out of credits or invalid).");
+}
+
 async function collect(cfg, st, ctx) {
   const tc = cfg.sources.twitter;
-  if (!tc.apiKey) {
-    ctx.warn("twitter:auth", "Twitter/X is enabled but TWITTERAPI_KEY is missing.");
+  const keys = (tc.apiKeys || []).filter(Boolean);
+  if (!keys.length) {
+    ctx.warn("twitter:auth", "Twitter/X is enabled but no TWITTERAPI_KEY is set.");
     return [];
   }
 
@@ -43,19 +52,22 @@ async function collect(cfg, st, ctx) {
   const queries = rotate(st, key, SEARCH_QUERIES, cfg.searchQueriesPerRun);
   const out = [];
   const errors = [];
+  const badKeys = new Set();
+  let preferredStart = Number.isInteger(st.twitterKeyIndex) ? st.twitterKeyIndex : 0;
+  if (preferredStart >= keys.length) preferredStart = 0;
 
   for (const q of queries) {
+    if (badKeys.size >= keys.length) {
+      errors.push("all keys exhausted");
+      break;
+    }
     try {
       const url = `${API}?query=${encodeURIComponent(buildQuery(q, since))}&queryType=Latest`;
-      const res = await fetchJson(url, { headers: { "X-API-Key": tc.apiKey } }, { retries: 1 });
-
+      const { res, keyIndex } = await fetchWithKeyFallback(url, keys, preferredStart, badKeys, ctx);
+      preferredStart = keyIndex;
+      st.twitterKeyIndex = keyIndex;
       for (const t of res.tweets || []) {
-        // Defensive filter: -filter:replies is passed in the query, but that's a request
-        // to Twitter's search, not a guarantee. Drop anything the API itself marks as a
-        // reply, since replies are almost always noise ("same, need a dev too") rather
-        // than a standalone hiring post.
         if (t.isReply) continue;
-
         const handle = (t.author && t.author.userName) || "";
         out.push({
           id: `twitter:${t.id}`,
@@ -71,7 +83,7 @@ async function collect(cfg, st, ctx) {
       }
     } catch (e) {
       errors.push(`"${q}": ${e.message.slice(0, 80)}`);
-      if (e.status === 401 || e.status === 403) break; // bad/exhausted key, no point continuing
+      if (e.status === 429) break;
     }
     await sleep(MIN_GAP_MS);
   }
